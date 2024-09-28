@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도서 검색 페이지</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>도서 검색</h1>
+        <!-- 검색 입력 창과 버튼 -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="책 제목을 입력하세요...">
+            <button onclick="searchBooks()">검색</button>
+        </div>
+
+        <!-- 검색 결과를 표시할 영역 -->
+        <div id="bookList" class="book-list"></div>
+    </div>
+
+    <script>
+        // API URL을 변수로 저장
+        const apiURL = 'https://api.example.com/sejong-libraries';  // 실제 세종시 도서관 API URL로 변경
+
+        // 검색 버튼을 눌렀을 때 호출되는 함수
+        async function searchBooks() {
+            // 검색 입력창에서 사용자가 입력한 검색어 가져오기
+            const query = document.getElementById('searchInput').value;
+
+            // 검색어가 없을 경우 경고 메시지 출력
+            if (!query) {
+                alert('검색어를 입력하세요.');
+                return;
+            }
+
+            // API 호출: 검색어를 API URL에 쿼리로 포함하여 요청 보냄
+            try {
+                const response = await fetch(`${apiURL}?search=${query}`);
+
+                // 응답을 JSON 형식으로 변환
+                const data = await response.json();
+
+                // 데이터가 존재하면, 검색 결과를 표시하는 함수를 호출
+                if (data && data.books) {
+                    displayBooks(data.books);
+                } else {
+                    document.getElementById('bookList').innerHTML = '검색 결과가 없습니다.';
+                }
+            } catch (error) {
+                // API 요청 실패 시 오류 메시지 출력
+                console.error('도서 검색 중 오류 발생:', error);
+                document.getElementById('bookList').innerHTML = '도서를 검색하는 중 오류가 발생했습니다.';
+            }
+        }
+
+        // 검색 결과를 화면에 표시하는 함수
+        function displayBooks(books) {
+            const bookListElement = document.getElementById('bookList');
+            bookListElement.innerHTML = '';  // 기존 검색 결과 지우기
+
+            // 각 도서 정보를 HTML로 변환하여 리스트에 추가
+            books.forEach(book => {
+                const bookItem = document.createElement('div');
+                bookItem.classList.add('book-item');
+                bookItem.innerHTML = `
+                    <img src="${book.coverImage || 'images/placeholder.png'}" alt="${book.title}" class="book-image">
+                    <div class="book-info">
+                        <h3 class="title">${book.title}</h3>
+                        <p class="author">${book.author}</p>
+                        <p class="publisher">${book.publisher}</p>
+                        <p class="category">${book.category}</p>
+                    </div>
+                `;
+                bookListElement.appendChild(bookItem);
+            });
+        }
+
+        // 사용자가 엔터키를 눌렀을 때도 검색이 이루어지도록 이벤트 추가
+        document.getElementById('searchInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                searchBooks();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도서 목록</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>도서 목록</h1>
+        <div class="search-container">
+            <!-- 사용자가 검색어를 입력할 수 있는 입력창과 검색 버튼 -->
+            <input type="text" id="searchInput" placeholder="도서 검색...">
+            <!-- 검색 버튼 클릭 시 searchBooks() 함수 호출 -->
+            <button onclick="searchBooks()">검색</button>
+        </div>
+        <!-- 도서 목록을 출력할 요소 -->
+        <div id="bookList" class="book-list"></div>
+        <!-- 페이지네이션 버튼을 출력할 요소 -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+    <!-- JavaScript 파일을 로드하여 기능 구현 -->
+    <script src="script.js"></script>
+</body>
+</html>

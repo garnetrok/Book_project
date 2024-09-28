@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도서 상세정보</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 기존 스타일 유지 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .book-details {
+            background-color: white;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .book-image-container {
+            flex: 0 0 200px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+        }
+        .book-info {
+            flex: 1;
+            min-width: 300px;
+        }
+        .book-image {
+            width: 100%;
+            height: 300px;
+            object-fit: contain;
+            background-color: #f0f0f0;
+        }
+        #reviews {
+            margin-top: 20px;
+        }
+        #reviewForm {
+            margin-top: 20px;
+        }
+        .stars {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .stars input {
+            display: none;
+        }
+        .stars label {
+            font-size: 25px;
+            color: #ddd;
+            cursor: pointer;
+        }
+        .stars label:hover,
+        .stars label:hover ~ label,
+        .stars input:checked ~ label {
+            color: gold;
+        }
+
+        /* 수정된 리뷰 아이템 스타일 */
+        .review-item {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .review-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0; /* 이 줄을 추가하여 flexbox 내부에서 축소 가능하게 함 */
+            flex: 1;
+        }
+        .review-rating, .review-name, .review-date {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .review-name {
+            flex: 0 1 auto; /* 이름이 너무 길 경우 줄임 */
+        }
+        .review-date {
+            flex: 0 1 auto; /* 날짜가 너무 길 경우 줄임 */
+        }
+        .review-content {
+            margin-top: 5px;
+            word-break: break-word; /* 긴 단어도 줄바꿈 */
+        }
+        .like-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            white-space: nowrap; /* 버튼 텍스트가 줄바꿈되지 않도록 함 */
+            flex-shrink: 0; /* 버튼이 축소되지 않도록 함 */
+        }
+        .like-count {
+            margin-left: 5px;
+            font-size: 14px;
+        }
+
+        /* 반응형 디자인 개선 */
+        @media (max-width: 768px) {
+            .book-details {
+                flex-direction: column;
+            }
+            .book-image-container {
+                flex: 0 0 100%;
+                margin-right: 0;
+            }
+            .book-image {
+                height: auto;
+                max-height: 300px;
+            }
+            .review-info {
+                flex-wrap: nowrap; /* 줄바꿈 방지 */
+                overflow: hidden; /* 넘치는 내용 숨김 */
+            }
+            .review-date {
+                display: none; /* 매우 작은 화면에서는 날짜 숨김 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>도서 상세정보</h1>
+        <div id="bookDetails" class="book-details"></div>
+        <div id="reviewForm">
+            <h3>한줄 리뷰 작성</h3>
+            <div class="stars">
+                <input type="radio" name="star" id="star5" value="5"><label for="star5">★</label>
+                <input type="radio" name="star" id="star4" value="4"><label for="star4">★</label>
+                <input type="radio" name="star" id="star3" value="3"><label for="star3">★</label>
+                <input type="radio" name="star" id="star2" value="2"><label for="star2">★</label>
+                <input type="radio" name="star" id="star1" value="1"><label for="star1">★</label>
+            </div>
+            <input type="text" id="reviewerName" placeholder="이름을 입력하세요...">
+            <input type="text" id="reviewInput" placeholder="리뷰를 입력하세요...">
+            <button onclick="addReview()">리뷰 등록</button>
+        </div>
+        <div id="reviews"></div>
+    </div>
+    <script>
+        let book;
+        let reviews = [];
+
+        async function loadBookDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookId = urlParams.get('id');
+            
+            const response = await fetch('book.json');
+            const books = await response.json();
+            book = books.find(b => b.id === parseInt(bookId));
+            
+            if (book) {
+                displayBookDetails();
+            } else {
+                document.getElementById('bookDetails').innerHTML = '도서를 찾을 수 없습니다.';
+            }
+        }
+
+        function displayBookDetails() {
+            const detailsElement = document.getElementById('bookDetails');
+            detailsElement.innerHTML = `
+                <div class="book-image-container">
+                    <img src="${book.coverImage}" alt="${book.title}" onerror="this.src='images/placeholder.png'" class="book-image">
+                </div>
+                <div class="book-info">
+                    <h2>${book.title}</h2>
+                    <p><strong>저자:</strong> ${book.author}</p>
+                    <p><strong>출판사:</strong> ${book.publisher}</p>
+                    <p><strong>출판년도:</strong> ${book.publishYear}</p>
+                    <p><strong>카테고리:</strong> ${book.category}</p>
+                    <p><strong>도서 소개:</strong> ${book.description}</p>
+                </div>
+            `;
+        }
+
+        function addReview() {
+            const reviewerName = document.getElementById('reviewerName').value.trim();
+            const reviewInput = document.getElementById('reviewInput').value.trim();
+            const starRating = document.querySelector('input[name="star"]:checked');
+
+            if (reviewerName && reviewInput && starRating) {
+                const rating = parseInt(starRating.value);
+                const newReview = {
+                    name: reviewerName,
+                    content: reviewInput,
+                    rating: rating,
+                    likes: 0,
+                    date: new Date().toISOString()
+                };
+                reviews.push(newReview);
+                displayReviews();
+                document.getElementById('reviewerName').value = '';
+                document.getElementById('reviewInput').value = '';
+                starRating.checked = false;
+            } else {
+                alert('이름, 리뷰 내용, 별점을 모두 입력해주세요.');
+            }
+        }
+
+        function displayReviews() {
+            const reviewsElement = document.getElementById('reviews');
+            reviewsElement.innerHTML = '<h3>한줄 리뷰</h3>';
+            reviews.forEach((review, index) => {
+                const reviewElement = document.createElement('div');
+                reviewElement.className = 'review-item';
+                reviewElement.innerHTML = `
+                    <div class="review-header">
+                        <div class="review-info">
+                            <span class="review-rating">${'★'.repeat(review.rating)}</span>
+                            <span class="review-name">${review.name}</span>
+                            <span class="review-date">${new Date(review.date).toLocaleString()}</span>
+                        </div>
+                        <button class="like-button" onclick="likeReview(${index})">👍 <span class="like-count">${review.likes}</span></button>
+                    </div>
+                    <p class="review-content">${review.content}</p>
+                `;
+                reviewsElement.appendChild(reviewElement);
+            });
+        }
+
+        function likeReview(index) {
+            reviews[index].likes++;
+            displayReviews();
+        }
+
+        document.getElementById('reviewInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                addReview();
+            }
+        });
+
+        loadBookDetails();
+    </script>
+</body>
+</html>
